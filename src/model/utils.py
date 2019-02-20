@@ -14,7 +14,8 @@ def load_filtered_state_dict(model, snapshot, ignore_layer=None, reverse=False):
         snapshot = {k: v for k, v in snapshot.items() if k in model_dict}
 
     if ignore_layer:
-        for l in ignore_layer:            
+        for l in ignore_layer:   
+            print("ignore_layer : {}".format(snapshot[l]))         
             del snapshot[l]
 
     model_dict.update(snapshot)
@@ -37,7 +38,7 @@ class SaveBestModel():
             self.last_epoch = epoch
 
             print('Taking snapshot...')
-            torch.save(model.state_dict(), self.save_dir + 'epoch_'+ str(epoch+1) + '.pkl')
+            torch.save(model.state_dict(), self.save_dir + '/epoch_'+ str(epoch+1) + '.pkl')
 
 
 

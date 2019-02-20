@@ -19,8 +19,8 @@ from tensorboardX import SummaryWriter
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Head pose estimation using the Hopenet network.')
-    parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
-            default=0, type=int)
+    parser.add_argument('--gpu', dest='gpu', help='GPU device id to use', nargs='+',
+            default=[0, 1], type=int)
     parser.add_argument('--num_epochs', dest='num_epochs', help='Maximum number of training epochs.',
           default=100, type=int)
     parser.add_argument('--batch_size', dest='batch_size', help='Batch size.',
@@ -50,17 +50,17 @@ def evaluate(eval_loader, model, writer, step, Save_model, epoch):
     for i, (images, labels, names) in enumerate(eval_loader):
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
-        gender_pred = model(images)
-        gender_pred = softmax(gender_pred)
+        label_pred = model(images)
+        label_pred = softmax(label_pred)
 
-        prec = accuracy(gender_pred, labels, topk=(1,))
+        prec = accuracy(label_pred, labels, topk=(1,))
         
         top_prec.update(prec[0].item())
         
 
     print('evaluate * Prec@1 {top:.3f}'.format(top=top_prec.avg))
 
-    writer.add_scalar('prec', top_prec.avg, step)
+    writer.add_scalar('eval_prec', top_prec.avg, step)
         
     Save_model.save(model, top_prec.avg, epoch)
 
@@ -71,8 +71,7 @@ def train(train_loader, model, criterion, optimizer, writer, batch_size, epoch, 
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
                     
-        label_pred = model(images)
-        #label_pred = softmax(label_pred)
+        label_pred = model(images)        
 
         # Cross entropy loss
         loss = criterion(label_pred, labels)
@@ -98,6 +97,13 @@ def train(train_loader, model, criterion, optimizer, writer, batch_size, epoch, 
 
         step += 1
 
+    # evaluate
+    softmax = nn.Softmax().cuda()
+    label_pred = softmax(label_pred)
+    prec = accuracy(label_pred, labels, topk=(1,))
+    print('training * Prec@1 {top:.3f}'.format(top=prec[0].item()))
+    writer.add_scalar('training_prec', prec[0].item(), step)
+
     return step
 
 def main(args):
@@ -105,8 +111,8 @@ def main(args):
 
     print('Loading data.')
 
-    transformations = transforms.Compose([transforms.Resize(240),
-        transforms.RandomCrop(224), transforms.ToTensor(),
+    transformations = transforms.Compose([transforms.Resize(320),
+        transforms.RandomCrop(299), transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
     train_x, train_y, classes_names = get_dataset(args.trainning_data_dir)
@@ -119,15 +125,14 @@ def main(args):
     train_loader = torch.utils.data.DataLoader(dataset=trainning_dataset,
                                                batch_size=args.batch_size,
                                                shuffle=True,
-                                               num_workers=16)
+                                               num_workers=32)
     
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset,
                                                batch_size=args.batch_size,
                                                shuffle=True,
-                                               num_workers=16)
+                                               num_workers=32)
     n = trainning_dataset.__len__()
     print(n)
-
 
     # ResNet50 structure
     model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], num_classes)
@@ -139,20 +144,24 @@ def main(args):
         if 'resnet' in args.saved_model:
             load_filtered_state_dict(model, saved_state_dict, ignore_layer=[], reverse=False)
         else:
-            load_filtered_state_dict(model, saved_state_dict, ignore_layer=[])
+            load_filtered_state_dict(model, saved_state_dict, ignore_layer=[], reverse=True)
 
 
-    crossEntropyLoss = nn.CrossEntropyLoss().cuda()
-    softmax = nn.Softmax().cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr = args.lr )
+    crossEntropyLoss = nn.CrossEntropyLoss().cuda()    
+    #optimizer = torch.optim.Adam(model.parameters(), lr = args.lr )
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10, 30, 60], gamma=0.1)    
+    
+
     # multi-gpu
-    model = nn.DataParallel(model, device_ids=[0, 1])
+    model = nn.DataParallel(model, device_ids=args.gpu)
     model.cuda()
 
     Save_model = SaveBestModel(save_dir=args.save_path)
     Writer = SummaryWriter()
     step = 0
     for epoch in range(args.num_epochs):
+        scheduler.step()
         evaluate(eval_loader, model, Writer, step, Save_model, epoch)
         step = train(train_loader, model, crossEntropyLoss, optimizer, Writer, args.batch_size, epoch, step, n)        
 
