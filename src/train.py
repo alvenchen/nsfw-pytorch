@@ -67,6 +67,11 @@ def evaluate(eval_loader, model, writer, step, Save_model, epoch):
 def train(train_loader, model, criterion, optimizer, writer, batch_size, epoch, step, n):
     last_time = time.time()
 
+    for param_group in optimizer.param_groups:
+        lr = param_group['lr']
+        writer.add_scalar('learning_rate', lr, step)
+        break 
+
     for i, (images, labels, name) in enumerate(train_loader):
         images = Variable(images).cuda()
         labels = Variable(labels).cuda()
@@ -76,12 +81,7 @@ def train(train_loader, model, criterion, optimizer, writer, batch_size, epoch, 
         # Cross entropy loss
         loss = criterion(label_pred, labels)
 
-        writer.add_scalar('loss', loss, step)
-
-        for param_group in optimizer.param_groups:
-            lr = param_group['lr']
-            writer.add_scalar('learning_rate', lr, step)
-            break            
+        writer.add_scalar('loss', loss, step)            
         
         optimizer.zero_grad()
         loss.backward()            
@@ -118,6 +118,7 @@ def main(args):
     train_x, train_y, classes_names = get_dataset(args.trainning_data_dir)
     test_x, test_y, _ = get_dataset(args.validation_data_dir)
     num_classes = len(classes_names)
+    print("classes : {}".format(classes_names))
 
     trainning_dataset = DataWrapper(train_x, train_y, transformations)
     eval_dataset = DataWrapper(test_x, test_y, transformations)
@@ -125,12 +126,12 @@ def main(args):
     train_loader = torch.utils.data.DataLoader(dataset=trainning_dataset,
                                                batch_size=args.batch_size,
                                                shuffle=True,
-                                               num_workers=32)
+                                               num_workers=16)
     
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset,
                                                batch_size=args.batch_size,
                                                shuffle=True,
-                                               num_workers=32)
+                                               num_workers=16)
     n = trainning_dataset.__len__()
     print(n)
 
@@ -150,7 +151,7 @@ def main(args):
     crossEntropyLoss = nn.CrossEntropyLoss().cuda()    
     #optimizer = torch.optim.Adam(model.parameters(), lr = args.lr )
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10, 30, 60], gamma=0.1)    
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[16, 28, 40], gamma=0.1)    
     
 
     # multi-gpu

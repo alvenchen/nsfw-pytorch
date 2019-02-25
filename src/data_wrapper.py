@@ -14,7 +14,7 @@ def shuffle(datas, labels):
 
 
 """
-the data is like this:
+the data is like:
     dir:
         sexy:
             xx.jpg
@@ -25,6 +25,7 @@ the data is like this:
 """
 def get_dataset(path, disorder=True):
     classes_names = [ name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) ]
+    classes_names = sorted(classes_names)
     datas = []
     classes = []
 
@@ -42,12 +43,13 @@ def get_dataset(path, disorder=True):
     return datas, classes, classes_names
 
 class DataWrapper(Dataset):
-    def __init__(self, x, y, transform=None, image_mode='RGB'):
+    def __init__(self, x, y, transform=None, image_mode='RGB', augumentation=True):
         self.x = x
         self.y = y
         self.image_mode = image_mode        
         self.transform = transform
         self.length = min(len(x), len(y))
+        self.augumentation = augumentation
 
     def __getitem__(self, index):
         img_name = self.x[index]
@@ -64,12 +66,12 @@ class DataWrapper(Dataset):
                 continue
             break
 
-        
-        img = self.randomFlip(img)
-        img = self.randomBlur(img)
-        img = self.randomRotation(img)
-        img = self.randomColor(img)
-        img = self.randomGaussian(img)
+        if self.augumentation:
+            img = self.randomFlip(img)
+            img = self.randomBlur(img)
+            img = self.randomRotation(img)
+            img = self.randomColor(img)
+            img = self.randomGaussian(img)
 
         if self.transform is not None:
             img = self.transform(img)

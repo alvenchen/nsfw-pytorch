@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument('--saved_model', help='Path of model snapshot for continue training.',
         default='./models/epoch_36.pkl', type=str)
 
-    parser.add_argument('--num_classes', help='Batch size.', default=5, type=int)
+    parser.add_argument('--num_classes', help='num of classes.', default=5, type=int)
 
     args = parser.parse_args()
     return args
