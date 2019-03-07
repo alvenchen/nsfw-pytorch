@@ -28,18 +28,18 @@ Result
 ---------
 confusion matrix:
 ```
-		 'drawings', 'hentai', 'neutral', 'porn', 'sexy'
-drawings   1660 		216		101			8 		15
-hentai	  	65   		1845   	16  		70  	4
-neutral     24  		12  	1805  		117  	42
-porn         2			61		22			1901	14
-sexy		 3			11 		63			524		1399
+          drawings    hentai    neutral    porn    sexy
+drawings   1660          216       101        8      15
+hentai       65         1845        16       70       4
+neutral      24           12      1805      117      42
+porn          2           61        22     1901      14
+sexy          3           11        63      524    1399
 ```
 compare with yahoo's implementation using the same test datas
 ```
-		sfw		nsfw
-sfw 	5711 	2289
-nsfw 	267 	1733
+      sfw   nsfw
+sfw   5711  2289
+nsfw  267   1733
 ```
 * notes: some datas from nsfw_data_scrapper are not proper classified
 
