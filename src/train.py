@@ -151,7 +151,7 @@ def main(args):
     crossEntropyLoss = nn.CrossEntropyLoss().cuda()    
     #optimizer = torch.optim.Adam(model.parameters(), lr = args.lr )
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[16, 28, 40], gamma=0.1)    
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20, 40, 60], gamma=0.1)    
     
 
     # multi-gpu
