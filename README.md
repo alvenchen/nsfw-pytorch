@@ -1,9 +1,12 @@
 NSFW pytorch implementation
 =========
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-blue.svg?style=flat-square)](#contributors)
+
 This repo contains code for running Not Suitable for Work (NSFW) classification deep neural network pytorch models.
 
 According to [yahoo-open-nsfw](https://yahooeng.tumblr.com/post/151148689421/open-sourcing-a-deep-learning-solution-for)
-fine-tune with resnet
+fine-tune with resnet or dpn
+
 
 Data
 ---------
@@ -24,8 +27,19 @@ training from scratch:
 python src/train.py --saved_model ''
 ```
 
+check from tensorboardx:
+![board](results/tensorboard.jpg)
+
+Test
+---------
+```bash
+python src/test_img.py --batch_size 1 --image_size 299 --test_data_dir data/test_save/  --saved_model models/epoch_53.pkl --save_path data/result/
+```
+
 Result
 ---------
+![result_1](results/1.jpg) ![result_2](results/2.jpg) ![result_3](results/3.jpg)
+
 confusion matrix:
 ```
           drawings    hentai    neutral    porn    sexy
@@ -42,4 +56,6 @@ sfw   5711  2289
 nsfw  267   1733
 ```
 * notes: some datas from nsfw_data_scrapper are not proper classified
+
+## Contributors
 

@@ -24,13 +24,15 @@ def parse_args():
     parser.add_argument('--gpu', dest='gpu', help='GPU device id to use', nargs='+', 
         default=[0], type=int)
     parser.add_argument('--batch_size', dest='batch_size', help='Batch size.',
-        default=32, type=int)
+        default=1, type=int)
+    parser.add_argument('--image_size', dest='image_size', help='Image size.',
+        default=224, type=int)
         
     parser.add_argument('--test_data_dir', dest='test_data_dir', help='Directory path for validation data.',
         default='./data/test', type=str)
         
     parser.add_argument('--saved_model', help='Path of model snapshot for continue training.',
-        default='./models/epoch_58.pkl', type=str)
+        default='./models/epoch_53.pkl', type=str)
 
     parser.add_argument('--num_classes', help='num of classes.', default=5, type=int)
 
@@ -43,8 +45,7 @@ def main(args):
     model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], args.num_classes)
     saved_state_dict = torch.load(args.saved_model)    
 
-    transformations = transforms.Compose([transforms.Resize(320),
-        transforms.RandomCrop(299), transforms.ToTensor()])
+    transformations = transforms.Compose([transforms.Resize((args.image_size, args.image_size)),transforms.ToTensor()])
     
     if args.gpu[0] >=0:        
         cudnn.enabled = True 
