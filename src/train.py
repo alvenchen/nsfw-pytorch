@@ -4,6 +4,7 @@ import argparse
 import time
 
 from model import resnet
+from model.dpn import dpn92
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -137,6 +138,9 @@ def main(args):
 
     # ResNet50 structure
     model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], num_classes)
+    # dpn 92
+    model = dpn92(num_classes=num_classes)
+
     if args.saved_model:
         print('Loading model.')
         saved_state_dict = torch.load(args.saved_model)
