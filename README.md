@@ -28,6 +28,9 @@ python src/train.py --saved_model ''
 ```
 
 check from tensorboardx:
+```bash
+/bin/tensorboard --logdir runs/Feb18_14-47-30_ubuntu16-NF5280M4/
+```
 ![board](results/tensorboard.jpg)
 
 Test
