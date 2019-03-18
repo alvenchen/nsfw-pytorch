@@ -32,7 +32,7 @@ def parse_args():
         default='./data/test', type=str)
         
     parser.add_argument('--saved_model', help='Path of model snapshot for continue training.',
-        default='./models/epoch_36.pkl', type=str)
+        default='./models/epoch_53.pkl', type=str)
 
     parser.add_argument('--num_classes', help='num of classes.', default=5, type=int)
     parser.add_argument('--save_path', help='path for save result.', default='', type=str)
@@ -44,8 +44,7 @@ default_class=['drawings', 'hentai', 'neutral', 'porn', 'sexy']
 
 def main(args):    
     
-    model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], args.num_classes)
-    saved_state_dict = torch.load(args.saved_model)    
+    model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], args.num_classes)    
 
     transformations = transforms.Compose([transforms.Resize((args.image_size, args.image_size)), transforms.ToTensor()])
     
@@ -53,12 +52,17 @@ def main(args):
         cudnn.enabled = True 
         softmax = nn.Softmax().cuda()
         model.cuda()
+        saved_state_dict = torch.load(args.saved_model)
     else:
         softmax = nn.Softmax()        
+        saved_state_dict = torch.load(args.saved_model, map_location='cpu')
 
-    load_filtered_state_dict(model, saved_state_dict, ignore_layer=[], reverse=True)
+    load_filtered_state_dict(model, saved_state_dict, ignore_layer=[], reverse=True, gpu=cudnn.enabled)
 
     imgs_path = glob.glob(os.path.join(args.test_data_dir, '*.jpg'))
+    imgs_path += glob.glob(os.path.join(args.test_data_dir, '*.jpeg'))
+    imgs_path += glob.glob(os.path.join(args.test_data_dir, '*.png'))
+
     for i in xrange((len(imgs_path) + args.batch_size - 1) / args.batch_size):
         if args.gpu[0] >=0:
             imgs = torch.FloatTensor(args.batch_size, 3, args.image_size, args.image_size).cuda()
