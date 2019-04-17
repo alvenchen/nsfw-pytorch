@@ -4,6 +4,7 @@ import argparse
 import time
 
 from model import resnet
+from model.dpn import dpn92
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -45,6 +46,7 @@ default_class=['drawings', 'hentai', 'neutral', 'porn', 'sexy']
 def main(args):    
     
     model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], args.num_classes)    
+    #model = dpn92(num_classes=args.num_classes)
 
     transformations = transforms.Compose([transforms.Resize((args.image_size, args.image_size)), transforms.ToTensor()])
     

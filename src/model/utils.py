@@ -1,7 +1,7 @@
 import os
 import torch
 
-def load_filtered_state_dict(model, snapshot, ignore_layer=None, reverse=False):
+def load_filtered_state_dict(model, snapshot, ignore_layer=None, reverse=False, gpu=False):
     model_dict = model.state_dict()     
     if reverse:
         #  snapshot keys have prefix 'module.'
@@ -20,6 +20,7 @@ def load_filtered_state_dict(model, snapshot, ignore_layer=None, reverse=False):
 
     model_dict.update(snapshot)
     print(len(snapshot), len(model_dict))
+
     model.load_state_dict(model_dict)
 
 

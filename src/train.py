@@ -139,7 +139,7 @@ def main(args):
     # ResNet50 structure
     model = resnet.ResNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], num_classes)
     # dpn 92
-    model = dpn92(num_classes=num_classes)
+    #model = dpn92(num_classes=num_classes)
 
     if args.saved_model:
         print('Loading model.')
